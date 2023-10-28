@@ -48,4 +48,50 @@ def register_user(request):
 
 
 def add_record(request):
-    pass
+    form = AddRecordForm(request.POST or None)
+    if request.method == "POST":
+        if request.user.is_authenticated:
+            if form.is_valid():
+                form.save()
+                messages.success(request, "Record Added...")
+                return redirect("/")
+        else:
+            messages.success(request, "You Must Be Logged In...")
+            return redirect("/")
+    return render(request, "main_app/add_record.html", {"form": form})
+
+
+def customer_record(request, pk):
+    if request.user.is_authenticated:
+        customer_record = Record.objects.get(id=pk)
+        return render(
+            request, "main_app/record.html", {"customer_record": customer_record}
+        )
+    else:
+        messages.success(request, "You Must Be Logged In To View That Page...")
+        return redirect("/")
+
+
+def update_record(request, pk):
+    current_record = Record.objects.get(id=pk)
+    form = AddRecordForm(request.POST or None, instance=current_record)
+    if request.user.is_authenticated:
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Record Has Been Updated!")
+            return redirect("/")
+    else:
+        messages.success(request, "You Must Be Logged In To Do That ")
+        return redirect("/")
+    return render(request, "main_app/update_record.html", {"form": form})
+
+
+def delete_record(request, pk):
+    if request.user.is_authenticated:
+        delete_it = Record.objects.get(id=pk)
+        delete_it.delete()
+        messages.success(request, "Record Deleted Successfully ")
+        return redirect("/")
+    else:
+        messages.success(request, "You Must Be Logged In To Do That ")
+        return redirect("/")
